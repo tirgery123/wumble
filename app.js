@@ -216,7 +216,7 @@
           ) : null
         ),
         el('p', { class: 'asked-q', text: item.question }),
-        el('p', { class: item.answer ? '' : 'empty', text: item.answer || 'Not answered yet.' })
+        el('p', { class: item.answer ? 'answer' : 'empty', text: item.answer || 'Not answered yet.' })
       );
       box.appendChild(card);
     });

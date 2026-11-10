@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wumble</title>
+<style>
+  :root {
+    --bg: #0a0708;
+    --panel: #161112;
+    --panel-2: #20181a;
+    --line: #3b2a2d;
+    --text: #f4eaeb;
+    --muted: #a58f93;
+    --accent: #e23a4e;
+    --accent-ink: #140305;
+    --pink: #c9a2a8;
+    --good: #8fe0b0;
+    --warn: #ffb964;
+    --bad: #ff8a8a;
+    --radius: 6px;
+    --display: Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, rgba(110, 12, 26, .3), transparent 380px), var(--bg);
+    background-repeat: no-repeat;
+    background-color: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  header {
+    position: sticky; top: 0; z-index: 5;
+    background: rgba(10, 7, 8, .88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    max-width: 1000px; margin: 0 auto; padding: 12px 16px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { font-family: var(--display); font-weight: 700; font-size: 1.15rem; letter-spacing: .02em; margin-right: auto; }
+  .brand span { color: var(--accent); }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav a {
+    color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 999px; font-size: .93rem;
+  }
+  nav a:hover { color: var(--text); background: var(--panel-2); }
+  main { max-width: 1000px; margin: 0 auto; padding: 8px 16px 80px; }
+  section { padding-top: 40px; scroll-margin-top: 60px; }
+  h2 { margin: 0 0 4px; font-size: 1.5rem; }
+  .sub { color: var(--muted); margin: 0 0 18px; font-size: .95rem; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px;
+  }
+  input, textarea, select, button { font: inherit; color: inherit; }
+  input[type=text], input[type=date], input[type=time], textarea {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 9px 12px; color-scheme: dark;
+  }
+  textarea { min-height: 140px; resize: vertical; }
+  input:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  button {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.ghost { background: none; border: none; color: var(--muted); padding: 4px 8px; }
+  button.ghost:hover { color: var(--bad); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .empty { color: var(--muted); font-style: italic; padding: 8px 0; }
+
+  /* journal */
+  .moods { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .moods button { border-radius: 999px; padding: 5px 14px; font-size: .9rem; }
+  .moods button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .entry { margin-top: 12px; }
+  .entry-head { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .85rem; margin-bottom: 6px; }
+  .entry-head .tag { color: var(--accent); }
+  .entry-head button { margin-left: auto; }
+  .entry p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+  /* hangouts */
+  .form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .form-grid .wide { grid-column: 1 / -1; }
+  .req { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .req .who { font-weight: 600; }
+  .req .when { color: var(--muted); font-size: .9rem; }
+  .req .note { flex-basis: 100%; font-size: .92rem; overflow-wrap: anywhere; }
+  .req .actions { margin-left: auto; display: flex; gap: 6px; }
+  .pill { font-size: .75rem; padding: 2px 10px; border-radius: 999px; border: 1px solid currentColor; }
+  .pill.pending { color: var(--warn); }
+  .pill.confirmed { color: var(--good); }
+  .pill.declined { color: var(--bad); }
+
+  /* goals */
+  .slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .slot .num { font-size: .75rem; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; }
+  .slot input[type=text] { margin-top: 8px; }
+  .slot .game { font-weight: 600; }
+  .meter { height: 8px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin: 14px 0 6px; }
+  .meter i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width .15s; }
+  .slot input[type=range] { width: 100%; accent-color: var(--accent); }
+  .slot .pct { font-size: .85rem; color: var(--muted); }
+
+  footer { color: var(--muted); font-size: .8rem; text-align: center; padding: 0 16px 40px; }
+
+  /* tone + tabs */
+  h2 { font-family: var(--display); font-weight: 400; font-size: 1.7rem; }
+  .brand { font-family: var(--display); font-weight: 400; font-size: 1.3rem; letter-spacing: .04em; }
+  section { display: none; }
+  section.active { display: block; }
+  nav a, .moods button, input[type=text], input[type=date], input[type=time], textarea, button, .day, .pill { border-radius: var(--radius); }
+  nav a[aria-current=page] { color: var(--text); background: none; border-radius: 0; box-shadow: inset 0 -2px 0 var(--accent); }
+  .slot .num, .entry-head .tag { color: var(--pink); }
+  .entry textarea { min-height: 100px; margin-bottom: 8px; }
+  .entry-head .acts { margin-left: auto; display: flex; }
+  .entry-head button { margin-left: 0; }
+  button.ghost.neutral:hover { color: var(--text); }
+  .prompt { border-left: 2px solid var(--accent); padding: 4px 0 4px 14px; margin-bottom: 18px; }
+  .prompt p { font-family: var(--display); font-size: 1.3rem; line-height: 1.35; margin: 0 0 10px; }
+  .prompt button { font-size: .85rem; padding: 5px 12px; color: var(--muted); }
+  .list-title { font-size: .95rem; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin: 30px 0 0; }
+  #askText { min-height: 80px; }
+  #askIdeas .idea { display: block; width: 100%; text-align: left; margin-top: 6px; background: none; }
+  .entry .asked-q { font-family: var(--display); font-size: 1.15rem; margin: 0 0 8px; }
+  .entry-head { flex-wrap: wrap; }
+  .entry-head .date { color: var(--text); font-weight: 600; font-size: .92rem; }
+  .req .sent { flex-basis: 100%; color: var(--muted); font-size: .8rem; }
+  .entry .asked { font-family: var(--display); font-style: italic; color: var(--muted); margin: 0 0 6px; }
+
+  @media (max-width: 800px) {
+    .week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 520px) {
+    .slots, .week { grid-template-columns: 1fr; }
+    .day { min-height: 0; }
+  }
+
+  /* owner sign-in + read-only views */
+  input[type=email], input[type=password] {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 9px 12px;
+  }
+  dialog {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 22px; width: min(360px, calc(100vw - 32px));
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, .7); }
+  dialog h3 { margin: 0 0 14px; font-family: var(--display); font-weight: 400; font-size: 1.3rem; }
+  footer button { font-size: .8rem; }
+  .slot .ro-game { font-weight: 600; margin: 8px 0 2px; }
+  .slot .ro-goal { color: var(--muted); margin: 0; overflow-wrap: anywhere; }
+  #flash {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 10;
+    background: var(--panel-2); border: 1px solid var(--accent); border-radius: var(--radius);
+    padding: 8px 16px; font-size: .9rem; max-width: calc(100vw - 32px);
+  }
+  #flash:empty { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="brand">Wumble</div>
+    <nav>
+      <a href="#questions">Questions</a>
+      <a href="#hangouts">Reservations</a>
+      <a href="#goals">Goals</a>
+      <a href="#journal">Journal</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section id="questions">
+    <h2>Questions</h2>
+    <p class="sub">Ask me anything. It is anonymous: no name is asked for or saved.</p>
+    <form class="card" id="askForm">
+      <label for="askText">Your question</label>
+      <textarea id="askText" maxlength="300" required placeholder="Type a question, or pick one below."></textarea>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" type="submit">Ask anonymously</button>
+        <span class="sub" id="askMsg" style="margin:0" role="status"></span>
+      </div>
+      <p class="sub" style="margin:22px 0 0">Not sure what to ask? Pick a topic.</p>
+      <div class="moods" id="askCats" role="group" aria-label="Question topics"></div>
+      <div id="askIdeas"></div>
+    </form>
+    <h3 class="list-title">Asked so far</h3>
+    <div id="asked"></div>
+  </section>
+
+  <section id="journal">
+    <h2>Journal</h2>
+    <p class="sub">Personal entries.</p>
+    <div class="card">
+      <div class="prompt">
+        <p id="prompt" aria-live="polite"></p>
+        <button type="button" id="nextPrompt">Ask me something else</button>
+      </div>
+      <label for="vent">Your answer, or anything else you need to say</label>
+      <textarea id="vent" placeholder="Write here."></textarea>
+      <div class="moods" id="moods" role="group" aria-label="Mood"></div>
+      <button class="primary" id="saveEntry">Save entry</button>
+    </div>
+    <div id="entries"></div>
+  </section>
+
+  <section id="hangouts">
+    <h2>Reservations</h2>
+    <p class="sub">Request a date and time to spend together. Reservations are listed below the form and are removed the day after they pass.</p>
+    <form class="card" id="reqForm">
+      <div class="form-grid">
+        <div><label for="rName">Your name</label><input type="text" id="rName" required maxlength="40"></div>
+        <div><label for="rDate">Date</label><input type="date" id="rDate" required></div>
+        <div><label for="rFrom">From</label><input type="time" id="rFrom" required></div>
+        <div><label for="rTo">Until</label><input type="time" id="rTo"></div>
+        <div class="wide"><label for="rNote">Plans (optional)</label><input type="text" id="rNote" maxlength="140"></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="primary" type="submit">Request this time</button>
+        <span class="sub" id="reqMsg" style="margin:0" role="status"></span>
+      </div>
+    </form>
+    <h3 class="list-title">Upcoming reservations</h3>
+    <div id="requests"></div>
+  </section>
+
+  <section id="goals">
+    <h2>Goals</h2>
+    <p class="sub">Current gaming objectives.</p>
+    <div class="slots" id="slots"></div>
+  </section>
+
+</main>
+
+<footer>
+  <span id="modeNote"></span>
+  <button type="button" class="ghost neutral" id="ownerBtn" hidden>Owner sign in</button>
+</footer>
+<div id="flash" role="status"></div>
+<dialog id="signin">
+  <form id="signinForm">
+    <h3>Owner sign in</h3>
+    <label for="siEmail">Email</label>
+    <input type="email" id="siEmail" required autocomplete="username">
+    <label for="siPass" style="margin-top:10px">Password</label>
+    <input type="password" id="siPass" required autocomplete="current-password">
+    <p class="sub" id="siMsg" role="alert" style="margin:10px 0 0"></p>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" type="submit">Sign in</button>
+      <button type="button" id="siCancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="prompts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
